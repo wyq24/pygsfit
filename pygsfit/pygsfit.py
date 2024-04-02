@@ -737,7 +737,7 @@ class App(QMainWindow):
         # Group 2: Fit Method
         self.fit_method_box = QHBoxLayout()
         self.fit_method_selector_widget = QComboBox()
-        self.fit_method_selector_widget.addItems(["nelder", "basinhopping", "differential_evolution", "mcmc", "Dr.Fleishman"])
+        self.fit_method_selector_widget.addItems(["nelder", "basinhopping", "differential_evolution", "mcmc", "Fleishman", "pygmo_mbh", "dlib_find_min_global"])
         self.fit_method_selector_widget.currentIndexChanged.connect(self.fit_method_selector)
         self.fit_method_box.addWidget(QLabel("Fit Method"))
         self.fit_method_box.addWidget(self.fit_method_selector_widget)
@@ -2103,7 +2103,7 @@ class App(QMainWindow):
         self.fit_method = self.fit_method_selector_widget.currentText()
         self.init_fit_kws()
         self.update_fit_kws_widgets()
-        if self.fit_method == 'Dr.Fleishman':
+        if self.fit_method == 'Fleishman':
             self.fit_Spectrum_Kl_call_preset()
 
     def ele_function_selector(self):
@@ -2172,6 +2172,10 @@ class App(QMainWindow):
         if self.fit_method == 'basinhopping':
             self.fit_kws = {'niter': 50, 'T': 90., 'stepsize': 0.8,
                             'interval': 25}
+        if self.fit_method == 'dlib_find_min_global':
+            self.fit_kws = {'num_function_calls': 500}
+        if self.fit_method == 'pygmo_mbh':
+            self.fit_kws = {'pop_size':10, 'stop':20, 'perturb':0.2}
         if self.fit_method == 'mcmc':
             self.fit_kws = {'steps': 1000, 'burn': 300, 'thin': 10, 'workers':8}
 
@@ -2388,15 +2392,17 @@ class App(QMainWindow):
         if self.fit_method == 'basinhopping':
             fit_kws['minimizer_kwargs'] = {'method': 'Nelder-Mead'}
             max_nfev *= self.fit_kws['niter'] * (self.fit_params_nvarys + 1)
-        if self.fit_method == 'nelder' or self.fit_method == 'mcmc':
+        if self.fit_method in ['nelder', 'mcmc']:
             fit_kws = {'options': self.fit_kws}
+        if self.fit_method == 'pygmo_mbh':
+            fit_kws['baalgokws'] =  {'algorithm': 'simulated_annealing'}
 
         if self.update_gui:
             if hasattr(self, 'spec_fitplot'):
                 self.speccanvas.removeItem(self.spec_fitplot)
         if self.fit_function != gstools.GSCostFunctions.SinglePowerLawMinimizerOneSrc:
             print("Not yet implemented")
-        elif self.fit_method == 'Dr.Fleishman':
+        elif self.fit_method == 'Fleishman':
             #using Dr.Fleishman's code which combine the minimization
             exported_fittig_info = []
             self.fit_Spectrum_Kl_input_converter()
