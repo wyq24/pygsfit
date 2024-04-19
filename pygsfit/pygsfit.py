@@ -868,6 +868,14 @@ class App(QMainWindow):
             self.mapx, self.mapy = np.linspace(self.x0, self.x1, meta['nx']), np.linspace(self.y0, self.y1, meta['ny'])
             self.tp_cal_factor = np.ones_like(self.cfreqs)
 
+            ####---for test only!!!!!!
+            import pickle
+            ratio_save = '/Users/walterwei/Downloads/20220511/info/spec_ratio.p'
+            with open(ratio_save, 'rb') as fff:
+                tmp_factor = pickle.load(fff, encoding='latin1')
+            fff.close()
+            self.tp_cal_factor = 1. / np.array(tmp_factor[0:self.meta['nfreq']])
+
             self.has_eovsamap = True
             with fits.open(self.eoimg_fname, mode='readonly') as wcs_hdul:
                 self.eo_wcs = wcs.WCS(wcs_hdul[0].header)
